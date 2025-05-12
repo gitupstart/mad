@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp"
+    android:gravity="center">
+
+    <TextView
+        android:id="@+id/textView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Accelerometer Data will appear here"
+        android:textSize="18sp"
+        android:textColor="@android:color/black"
+        android:padding="16dp"
+        android:layout_gravity="center"
+        android:layout_marginTop="20dp"
+        android:background="@android:color/white"
+        android:gravity="center" />
+
+</LinearLayout>
+
+package com.example.accelerometer;
+
+import android.content.Context;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
+import android.os.Bundle;
+import android.widget.TextView;
+import androidx.appcompat.app.AppCompatActivity;
+
+public class MainActivity extends AppCompatActivity implements SensorEventListener {
+    private TextView textView;
+    private SensorManager sensorManager;
+    private Sensor accelerometer;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main); // Use the new layout
+
+        textView = findViewById(R.id.textView); // Initialize the TextView
+        sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE); // Get SensorManager
+        accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER); // Get Accelerometer sensor
+
+        // Check if accelerometer is available
+        if (accelerometer == null) {
+            textView.setText("No Accelerometer Sensor Found!"); // Show message if accelerometer is unavailable
+        }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // Register the accelerometer listener if the sensor is available
+        if (accelerometer != null) {
+            sensorManager.registerListener(this, accelerometer, SensorManager.SENSOR_DELAY_UI);
+        }
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        // Unregister sensor listener to stop listening for sensor changes
+        sensorManager.unregisterListener(this);
+    }
+
+    @Override
+    public void onSensorChanged(SensorEvent event) {
+        if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
+            // Get accelerometer values (X, Y, Z axis)
+            float x = event.values[0];
+            float y = event.values[1];
+            float z = event.values[2];
+
+            // Display the accelerometer data
+            textView.setText("Accelerometer Data:\nX: " + x + " m/s²\nY: " + y + " m/s²\nZ: " + z + " m/s²");
+        }
+    }
+
+    @Override
+    public void onAccuracyChanged(Sensor sensor, int accuracy) {
+        // Handle sensor accuracy changes if necessary (not used in this case)
+    }
+}
