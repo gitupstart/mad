@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp"
+    android:gravity="center">
+
+    <TextView
+        android:id="@+id/textView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Accelerometer Data will appear here"
+        android:textSize="18sp"
+        android:textColor="@android:color/black"
+        android:padding="16dp"
+        android:layout_gravity="center"
+        android:layout_marginTop="20dp"
+        android:background="@android:color/white"
+        android:gravity="center" />
+
+</LinearLayout>
+
+
+package com.example.accelerometerapp;
+
+import android.content.Context;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
+import android.os.Bundle;
+import android.widget.TextView;
+import androidx.appcompat.app.AppCompatActivity;
+
+public class MainActivity extends AppCompatActivity implements SensorEventListener {
+    private TextView textView;
+    private SensorManager sensorManager;
+    private Sensor proximitySensor;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_accelerometer);  // Use the same layout as before, or create a new one for proximity
+        
+        textView = findViewById(R.id.textView);  // Initialize the TextView
+        sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);  // Get SensorManager
+        proximitySensor = sensorManager.getDefaultSensor(Sensor.TYPE_PROXIMITY);  // Get Proximity sensor
+
+        // Check if proximity sensor is available
+        if (proximitySensor == null) {
+            textView.setText("No Proximity Sensor Found!");  // Show message if proximity sensor is unavailable
+        }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // Register the proximity sensor listener if the sensor is available
+        if (proximitySensor != null) {
+            sensorManager.registerListener(this, proximitySensor, SensorManager.SENSOR_DELAY_UI);
+        }
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        // Unregister sensor listener to stop listening for sensor changes
+        sensorManager.unregisterListener(this);
+    }
+
+    @Override
+    public void onSensorChanged(SensorEvent event) {
+        if (event.sensor.getType() == Sensor.TYPE_PROXIMITY) {
+            // Get proximity sensor value (distance in cm)
+            float proximity = event.values[0];
+
+            // Display the proximity sensor data
+            if (proximity < proximitySensor.getMaximumRange()) {
+                textView.setText("Hand is Near the Device\nDistance: " + proximity + " cm");
+            } else {
+                textView.setText("Hand is Away from the Device\nDistance: " + proximity + " cm");
+            }
+        }
+    }
+
+    @Override
+    public void onAccuracyChanged(Sensor sensor, int accuracy) {
+        // Handle sensor accuracy changes if necessary (not used in this case)
+    }
+}
