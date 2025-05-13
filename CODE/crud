@@ -1,0 +1,318 @@
+package com.example.myapplication;
+
+import android.app.Activity;
+import android.app.AlertDialog.Builder;
+import android.content.ContentValues;
+import android.content.Context;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
+import android.os.Bundle;
+import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
+
+public class MainActivity extends Activity implements View.OnClickListener {
+
+    EditText Rollno, Name, Marks;
+    Button Insert, Delete, Update, View, ViewAll;
+    SQLiteDatabase db;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+
+        Rollno = findViewById(R.id.Rollno);
+        Name = findViewById(R.id.Name);
+        Marks = findViewById(R.id.Marks);
+
+        Insert = findViewById(R.id.Insert);
+        Delete = findViewById(R.id.Delete);
+        Update = findViewById(R.id.Update);
+        View = findViewById(R.id.View);
+        ViewAll = findViewById(R.id.ViewAll);
+
+        Insert.setOnClickListener(this);
+        Delete.setOnClickListener(this);
+        Update.setOnClickListener(this);
+        View.setOnClickListener(this);
+        ViewAll.setOnClickListener(this);
+
+        db = openOrCreateDatabase("StudentDB", Context.MODE_PRIVATE, null);
+        db.execSQL("CREATE TABLE IF NOT EXISTS student(rollno VARCHAR, name VARCHAR, marks VARCHAR);");
+    }
+
+    @Override
+    public void onClick(View view) {
+        if (view == Insert) {
+            insertRecord();
+        } else if (view == Delete) {
+            deleteRecord();
+        } else if (view == Update) {
+            updateRecord();
+        } else if (view == View) {
+            viewRecord();
+        } else if (view == ViewAll) {
+            viewAllRecords();
+        }
+    }
+
+    private void insertRecord() {
+        if (Rollno.getText().toString().trim().isEmpty() || Name.getText().toString().trim().isEmpty() || Marks.getText().toString().trim().isEmpty()) {
+            showMessage("Error", "Please enter all values");
+            return;
+        }
+
+        ContentValues values = new ContentValues();
+        values.put("rollno", Rollno.getText().toString());
+        values.put("name", Name.getText().toString());
+        values.put("marks", Marks.getText().toString());
+
+        db.insert("student", null, values);
+        showMessage("Success", "Record added");
+        clearText();
+    }
+
+    private void deleteRecord() {
+        if (Rollno.getText().toString().trim().isEmpty()) {
+            showMessage("Error", "Please enter Rollno");
+            return;
+        }
+
+        Cursor c = db.rawQuery("SELECT * FROM student WHERE rollno=?", new String[]{Rollno.getText().toString()});
+        if (c.moveToFirst()) {
+            db.execSQL("DELETE FROM student WHERE rollno=?", new String[]{Rollno.getText().toString()});
+            showMessage("Success", "Record Deleted");
+        } else {
+            showMessage("Error", "Invalid Rollno");
+        }
+        clearText();
+    }
+
+    private void updateRecord() {
+        if (Rollno.getText().toString().trim().isEmpty()) {
+            showMessage("Error", "Please enter Rollno");
+            return;
+        }
+
+        Cursor c = db.rawQuery("SELECT * FROM student WHERE rollno=?", new String[]{Rollno.getText().toString()});
+        if (c.moveToFirst()) {
+            ContentValues values = new ContentValues();
+            values.put("name", Name.getText().toString());
+            values.put("marks", Marks.getText().toString());
+
+            db.update("student", values, "rollno=?", new String[]{Rollno.getText().toString()});
+            showMessage("Success", "Record Modified");
+        } else {
+            showMessage("Error", "Invalid Rollno");
+        }
+        clearText();
+    }
+
+    private void viewRecord() {
+        if (Rollno.getText().toString().trim().isEmpty()) {
+            showMessage("Error", "Please enter Rollno");
+            return;
+        }
+
+        Cursor c = db.rawQuery("SELECT * FROM student WHERE rollno=?", new String[]{Rollno.getText().toString()});
+        if (c.moveToFirst()) {
+            Name.setText(c.getString(1));
+            Marks.setText(c.getString(2));
+        } else {
+            showMessage("Error", "Invalid Rollno");
+            clearText();
+        }
+    }
+
+    private void viewAllRecords() {
+        Cursor c = db.rawQuery("SELECT * FROM student", null);
+        if (c.getCount() == 0) {
+            showMessage("Error", "No records found");
+            return;
+        }
+
+        StringBuilder buffer = new StringBuilder();
+        while (c.moveToNext()) {
+            buffer.append("Rollno: ").append(c.getString(0)).append("\n");
+            buffer.append("Name: ").append(c.getString(1)).append("\n");
+            buffer.append("Marks: ").append(c.getString(2)).append("\n\n");
+        }
+
+        showMessage("Student Details", buffer.toString());
+    }
+
+    public void showMessage(String title, String message) {
+        Builder builder = new Builder(this);
+        builder.setCancelable(true);
+        builder.setTitle(title);
+        builder.setMessage(message);
+        builder.show();
+    }
+
+    public void clearText() {
+        Rollno.setText("");
+        Name.setText("");
+        Marks.setText("");
+        Rollno.requestFocus();
+    }
+}
+
+<?xml version="1.0" encoding="utf-8"?>
+
+<AbsoluteLayout xmlns:android="http://schemas.android.com/apk/res/android"
+
+    android:layout_width="match_parent"
+
+    android:layout_height="match_parent">
+
+    <TextView
+
+        android:layout_width="wrap_content"
+
+        android:layout_height="wrap_content"
+
+        android:layout_x="50dp"
+
+        android:layout_y="20dp"
+
+        android:text="Student Details"
+
+        android:textSize="30sp" />
+
+    <TextView
+
+        android:layout_width="wrap_content"
+
+        android:layout_height="wrap_content"
+
+        android:layout_x="20dp"
+
+        android:layout_y="110dp"
+
+        android:text="Enter Rollno:"
+
+        android:textSize="20sp" />
+
+
+    <EditText
+
+        android:id="@+id/Rollno"
+
+        android:layout_width="150dp" android:layout_height="wrap_content" android:layout_x="175dp"
+
+        android:layout_y="100dp"
+
+        android:inputType="number" android:textSize="20sp" />
+
+    <TextView
+
+        android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_x="20dp"
+
+        android:layout_y="160dp"
+
+        android:text="Enter Name:"
+
+        android:textSize="20sp" />
+
+    <EditText
+
+        android:id="@+id/Name"
+
+        android:layout_width="150dp" android:layout_height="wrap_content" android:layout_x="175dp"
+
+        android:layout_y="150dp"
+
+        android:inputType="text"
+
+        android:textSize="20sp" />
+
+    <TextView
+
+        android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_x="20dp"
+
+        android:layout_y="210dp"
+
+        android:text="Enter Marks:"
+
+        android:textSize="20sp" />
+
+    <EditText
+
+        android:id="@+id/Marks"
+
+        android:layout_width="150dp" android:layout_height="wrap_content"
+
+
+        android:layout_x="175dp"
+
+        android:layout_y="200dp"
+
+        android:inputType="number" android:textSize="20sp" />
+
+    <Button
+
+        android:id="@+id/Insert"
+
+        android:layout_width="150dp" android:layout_height="wrap_content" android:layout_x="25dp"
+
+        android:layout_y="300dp"
+
+        android:text="Insert"
+
+        android:textSize="30dp" />
+
+    <Button
+
+        android:id="@+id/Delete"
+
+        android:layout_width="150dp" android:layout_height="wrap_content" android:layout_x="200dp"
+
+        android:layout_y="300dp"
+
+        android:text="Delete"
+
+        android:textSize="30dp" />
+
+    <Button
+
+        android:id="@+id/Update"
+
+        android:layout_width="150dp" android:layout_height="wrap_content" android:layout_x="25dp"
+
+        android:layout_y="400dp"
+
+        android:text="Update"
+
+        android:textSize="30dp" />
+
+    <Button
+
+        android:id="@+id/View"
+
+        android:layout_width="150dp" android:layout_height="wrap_content" android:layout_x="200dp"
+
+        android:layout_y="400dp"
+
+        android:text="View"
+
+
+        android:textSize="30dp" />
+
+    <Button
+
+        android:id="@+id/ViewAll"
+
+        android:layout_width="200dp"
+
+        android:layout_height="wrap_content"
+
+        android:layout_x="100dp"
+
+        android:layout_y="500dp"
+
+        android:text="View All"
+
+        android:textSize="30dp" />
+
+</AbsoluteLayout>
