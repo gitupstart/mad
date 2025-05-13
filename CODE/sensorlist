@@ -1,0 +1,54 @@
+package com.example.exp7;
+
+import androidx.appcompat.app.AppCompatActivity;
+
+import android.content.Context;
+import android.hardware.Sensor;
+import android.hardware.SensorManager;
+import android.os.Bundle;
+import android.widget.TextView;
+import java.util.List;
+
+public class MainActivity extends AppCompatActivity {
+    private TextView textview;
+    private SensorManager sensorManager;
+    private List<Sensor> deviceSensors;
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+        textview=findViewById(R.id.textView);
+        sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
+        deviceSensors = sensorManager.getSensorList(Sensor.TYPE_ALL);
+
+        printSensors();
+        
+    }
+    private void printSensors(){
+        for(Sensor sensor : deviceSensors){
+                textview.setText(textview.getText() + "\n"+sensor.getName());
+            }
+    }
+}
+
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".MainActivity"
+    android:padding="16dp">
+    <TextView
+        android:id="@+id/textView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Available Sensors:"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        android:textSize="18sp"
+        android:textStyle="bold"/>
+
+</LinearLayout>
